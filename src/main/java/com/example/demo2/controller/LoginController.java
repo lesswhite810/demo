@@ -2,13 +2,18 @@ package com.example.demo2.controller;
 
 import com.example.demo2.entity.User;
 import com.example.demo2.service.UserService;
+import common.Msg;
+import common.ResultUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.validation.Valid;
 import java.io.IOException;
 
 @Controller
@@ -18,7 +23,6 @@ public class LoginController {
     @Autowired
     private UserService userService;
 
-
     @RequestMapping("/toIndex")
     public String show(){
         return "index";
@@ -26,16 +30,19 @@ public class LoginController {
 
     //登录操作
     @ResponseBody
-    @RequestMapping("/loginUser")
-    public String login(User user, HttpServletRequest request){
+    @RequestMapping(value = "/loginUser",method = RequestMethod.POST)
+    public Msg login(@RequestBody @Valid User user, HttpServletRequest request) throws Exception {
         String userName = user.getUserName();
         String passWord = user.getPassword();
         User u1 =userService.login(userName,passWord);
         if (u1==null){
-            return "用户名或密码错误";
+            Msg msg = ResultUtil.error(202,"账户密码错误");
+            return msg;
         }else{
-            request.getSession().setAttribute("session_user",user);//登录成功后将用户放入session中，用于拦截
-            return "登录成功";
+            //登录成功后将用户放入session中，用于拦截
+            request.getSession().setAttribute("session_user",user);
+            Msg msg = ResultUtil.success();
+            return msg;
         }
     }
 
